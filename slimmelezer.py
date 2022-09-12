@@ -137,7 +137,7 @@ def main():
     loop = asyncio.get_event_loop()
 
     log("Starting timer")
-    cancelTimer = setInterval(loop, tick, 5)
+    cancelTimer = setInterval(loop, tick, 10)
 
     try:
         log("Starting up")
