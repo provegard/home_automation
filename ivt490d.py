@@ -1,6 +1,11 @@
 #!/usr/bin/env python
 #pylint: indent-string='  '
 
+# Note:
+# pip install pyserial
+# pip install python-daemon
+# pip install lockfile
+
 import serial
 import daemon
 import signal
