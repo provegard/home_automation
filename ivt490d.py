@@ -92,13 +92,13 @@ class App(object):
 
 
 def usage():
-  print sys.argv[0] + ' [-h][-f] [-l log file] [-p pid_file] [-o receiver script] [-s serial port]'
-  print '\t-l  : path to file that will receive log messages (default %s)' % (LOGFILE, )
-  print '\t-p  : path to file that will receive the daemon PID (default %s)' % (PIDFILE, )
-  print '\t-o  : path to file to which readings will be appended - will be run through strftime'
-  print '\t-s  : serial port to get readings from (at %d baud, default %s)' % (SEROPTS["baudrate"], SEROPTS["port"], )
-  print "\t-f  : don't detach (run in foreground)"
-  print '\t-h  : display this help'
+  print(sys.argv[0] + ' [-h][-f] [-l log file] [-p pid_file] [-o receiver script] [-s serial port]')
+  print('\t-l  : path to file that will receive log messages (default %s)' % (LOGFILE, ))
+  print('\t-p  : path to file that will receive the daemon PID (default %s)' % (PIDFILE, ))
+  print('\t-o  : path to file to which readings will be appended - will be run through strftime')
+  print('\t-s  : serial port to get readings from (at %d baud, default %s)' % (SEROPTS["baudrate"], SEROPTS["port"], ))
+  print("\t-f  : don't detach (run in foreground)")
+  print('\t-h  : display this help')
 
 
 def start():
@@ -123,7 +123,7 @@ def start():
       usage()
       sys.exit(1)
   if not outputfile:
-    print "Missing output file."
+    print("Missing output file.")
     usage()
     sys.exit(2)
 
