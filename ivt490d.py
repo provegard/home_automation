@@ -81,6 +81,7 @@ class App(object):
     try:
       while self.running and self.ser:
         line = self.ser.readline()
+        line = line.decode("ascii")
         if len(line) > 0 and line[0] != "\x00":
           self.publish(line.rstrip())
     except KeyboardInterrupt:
