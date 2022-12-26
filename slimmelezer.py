@@ -21,7 +21,8 @@ currentState = {}
 
 def write(fileKey, msg):
     if fileKey in opts:
-        filename = opts[fileKey]
+        # allow date/time formatting in a filename
+        filename = time.strftime(opts[fileKey], time.localtime())
         if filename == "-":
             print(msg)
         else:
