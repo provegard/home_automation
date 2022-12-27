@@ -56,12 +56,12 @@ class App(object):
     secs = time.time()
     csv = ";".join([field.strip() for field in line.split(";")])
     line = "%s;%s" % (secs, csv)
-    #Popen([self.scriptpath, line]) # spawn
-    ofile = time.strftime(self.outputfile, time.localtime())
-    with open(ofile, "a") as fd:
-      fd.write(line + "\n")
-    if self.foreground:
+    if self.outputfile == "-":
       sys.stdout.write(line + "\n")
+    else:
+      ofile = time.strftime(self.outputfile, time.localtime())
+      with open(ofile, "a") as fd:
+        fd.write(line + "\n")
 
   def open_serial(self):
     try:
