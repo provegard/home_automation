@@ -71,7 +71,7 @@ def dumpObjectIds(lookup):
     for objId in lookup.values():
         print(f"- {objId}")
 
-async def start():
+async def start(eventloop):
     log(f"Establishing a connection to {opts['host']}:{opts['port']}")
     api = aioesphomeapi.APIClient(opts["host"], opts["port"], "")
     await api.connect(login=True)
@@ -81,6 +81,7 @@ async def start():
 
     if opts["list"]:
         dumpObjectIds(keyLookup)
+        eventloop.stop()
         return
 
     # TODO: If state doesn't change for a while, disconnect and reconnect!
@@ -142,7 +143,7 @@ def main():
 
     try:
         log("Starting up")
-        asyncio.ensure_future(start())
+        asyncio.ensure_future(start(loop))
         loop.run_forever()
         pass
     except KeyboardInterrupt:
