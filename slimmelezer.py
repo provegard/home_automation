@@ -90,6 +90,8 @@ async def start(eventloop, outP):
     monitorHangLimit = opts["monitorHangLimit"]
     monitorValues = []
 
+    log(f"Monitoring {monitorObjectId} to check for hang; {monitorHangLimit} consecutive equal values will trigger a restart.")
+
     def check_hang(value):
         monitorValues.append(value)
         while len(monitorValues) > monitorHangLimit:
@@ -97,7 +99,7 @@ async def start(eventloop, outP):
         if len(monitorValues) == monitorHangLimit:
             allSame = len(set(monitorValues)) == 1
             if allSame:
-                log(f"Hang detected! The last {monitorHangLimit} values of {monitorObjectId} are the same.")
+                log(f"Hang detected! The last {monitorHangLimit} values of {monitorObjectId} are the same. Exiting with non-zero exit status to trigger systemd restart.")
                 #api.disconnect() # cannot await here, not in async context
                 outP["exitCode"] = 1
                 eventloop.stop()
