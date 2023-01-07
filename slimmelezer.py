@@ -14,6 +14,8 @@ opts = {
     "port": 6053,
     "objectIds": ["power_consumed", "power_consumed_phase_1", "power_consumed_phase_2", "power_consumed_phase_3"],
     "list": False,
+    "monitorObjectId": "energy_consumed_luxembourg",
+    "monitorHangLimit": 20,
 }
 
 # Shared state updated by the change_callback and read by tick.
@@ -71,7 +73,7 @@ def dumpObjectIds(lookup):
     for objId in lookup.values():
         print(f"- {objId}")
 
-async def start(eventloop):
+async def start(eventloop, outP):
     log(f"Establishing a connection to {opts['host']}:{opts['port']}")
     api = aioesphomeapi.APIClient(opts["host"], opts["port"], "")
     await api.connect(login=True)
@@ -84,6 +86,23 @@ async def start(eventloop):
         eventloop.stop()
         return
 
+    monitorObjectId = opts["monitorObjectId"]
+    monitorHangLimit = opts["monitorHangLimit"]
+    monitorValues = []
+
+    def check_hang(value):
+        monitorValues.append(value)
+        while len(monitorValues) > monitorHangLimit:
+            monitorValues.pop(0)
+        if len(monitorValues) == monitorHangLimit:
+            allSame = len(set(monitorValues)) == 1
+            if allSame:
+                log(f"Hang detected! The last {monitorHangLimit} values of {monitorObjectId} are the same.")
+                #api.disconnect() # cannot await here, not in async context
+                outP["exitCode"] = 1
+                eventloop.stop()
+                return
+
     # TODO: If state doesn't change for a while, disconnect and reconnect!
     def change_callback(state):
         if state.missing_state:
@@ -91,6 +110,10 @@ async def start(eventloop):
 
         if state.key in keyLookup:
             (objectId, unit) = keyLookup[state.key]
+
+            if objectId == monitorObjectId:
+                check_hang(state.state)
+
             if objectId in opts["objectIds"]:
                 currentState[objectId] = { "value": state.state, "unit": unit }
 
@@ -105,11 +128,13 @@ def usage():
     print(f"\t-H  : ESPHOME host name, required")
     print(f"\t-p  : ESPHOME port (default {opts['port']})")
     print(f"\t-i  : comma-separated list of object IDs (default {ids})")
+    print(f"\t-m  : object ID to monitor for hang (default {opts['monitorObjectId']})")
+    print(f"\t-M  : monitor hang limit (default {opts['monitorHangLimit']})")
     print(f"\t-L  : list object IDs and exit")
     print(f"\t-h  : show this help")
 
 def readOpts():
-    optss, args = getopt.getopt(sys.argv[1:], 'H:p:l:hi:o:L')
+    optss, args = getopt.getopt(sys.argv[1:], 'H:p:l:hi:o:Lm:M:')
     for o, a in optss:
         if o == "-i":
             opts["objectIds"] = a.split(",")
@@ -123,6 +148,10 @@ def readOpts():
             opts["logFile"] = os.path.abspath(a)
         elif o == "-L":
             opts["list"] = True
+        elif o == "-m":
+            opts["monitorObjectId"] = a
+        elif o == "-M":
+            opts["monitorHangLimit"] = int(a)
         elif o == "-h":
             usage()
             sys.exit(2)
@@ -141,9 +170,11 @@ def main():
     log("Starting timer")
     cancelTimer = setInterval(loop, tick, 10)
 
+    # A plain global variable didn't work.
+    outP = { "exitCode": 0 }
     try:
         log("Starting up")
-        asyncio.ensure_future(start(loop))
+        asyncio.ensure_future(start(loop, outP))
         loop.run_forever()
         pass
     except KeyboardInterrupt:
@@ -154,6 +185,10 @@ def main():
         #loop.run_until_complete(loop.shutdown_asyncgens())
         loop.close()
         log("Closed!")
+
+        exitCode = outP["exitCode"]
+        if exitCode > 0:
+            sys.exit(exitCode)
 
 if __name__ == "__main__":
     main()
