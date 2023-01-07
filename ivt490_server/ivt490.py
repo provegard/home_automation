@@ -44,11 +44,13 @@ def lineToJson(csvLine):
 
     fan_kw = 0.165
     comp_kw = 0.5
+    pump_kw = 0.1
 
     current_fan_kw = fan_kw if b9 else 0.0
     current_comp_kw = comp_kw if b5 else 0.0
+    current_pump_kw = pump_kw if b8 else 0.0
 
-    total_kw = est_kw + current_fan_kw + current_comp_kw
+    total_kw = est_kw + current_fan_kw + current_comp_kw + current_pump_kw
 
     data = {
         "time": time,
@@ -82,6 +84,7 @@ def lineToJson(csvLine):
             "est_kw": est_kw,
             "fan_kw": current_fan_kw,
             "compressor_kw": current_comp_kw,
+            "circulation_pump_kw": current_pump_kw,
             "total_kw": total_kw
         }
     }
