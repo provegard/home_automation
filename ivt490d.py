@@ -77,6 +77,7 @@ class App(object):
     self.running = False
 
   def listen(self):
+    exitCode = 0
     self.log("Entering listen loop.")
     try:
       while self.running and self.ser:
@@ -88,13 +89,15 @@ class App(object):
       self.log("Interrupted by user!")
     except:
       self.log("ERROR reading from serial port: " + str(sys.exc_info()[1]))
+      exitCode = 1
 
     if self.ser:
       try:
         self.ser.close()
       except:
         pass # ignore
-    self.log("Listen loop ended.")
+    self.log("Listen loop ended, exit code = %d." % (exitCode, ))
+    return exitCode
 
 
 def usage():
@@ -139,7 +142,9 @@ def start():
   if foreground:
     a.log("Foreground mode")
     a.open_serial()
-    a.listen()
+    exitCode = a.listen()
+    if exitCode > 0:
+      sys.exit(exitCode)
   else:
     fullpid = os.path.abspath(pidfile)
     a.log("Daemon mode, setting up context.")
