@@ -29,6 +29,9 @@ def lineToJson(csvLine):
     gt3_3 = int(parts[6]) / 10.0  # varmevatten = golvslingor
     gt6 = int(parts[8]) / 10.0    # hetgastemp / kompressor
     b5 = bool(int(parts[14]))     # kompressor
+    b8 = bool(int(parts[17]))     # circulationspump
+    b9 = bool(int(parts[18]))     # flakt
+    b10 = bool(int(parts[19]))    # larm
     
     est_temp = int(parts[23]) / 10.0  # beraknad temperatur
 
@@ -38,6 +41,14 @@ def lineToJson(csvLine):
 
     elec_kw = 9.0
     est_kw = 9.0 * elec_sum / 100.0
+
+    fan_kw = 0.165
+    comp_kw = 0.5
+
+    current_fan_kw = fan_kw if b9 else 0.0
+    current_comp_kw = comp_kw if b5 else 0.0
+
+    total_kw = est_kw + current_fan_kw + current_comp_kw
 
     data = {
         "time": time,
@@ -56,13 +67,22 @@ def lineToJson(csvLine):
         },
         "flags": {
             "b5": b5,
-            "compressor": b5
+            "b8": b8,
+            "b9": b9,
+            "b10": b10,
+            "compressor": b5,
+            "circulation_pump": b8,
+            "fan": b9,
+            "alarm": b10
         },
         "power_draw": {
             "sum_pct": elec_sum,
             "rad_pct": elec_rad,
             "vv_pct": elec_vv,
-            "est_kw": est_kw
+            "est_kw": est_kw,
+            "fan_kw": current_fan_kw,
+            "compressor_kw": current_comp_kw,
+            "total_kw": total_kw
         }
     }
 
