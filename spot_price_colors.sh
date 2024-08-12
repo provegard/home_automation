@@ -54,10 +54,12 @@ lamp_1_col=$(price_to_color $(get_hour_price 0))
 lamp_2_col=$(price_to_color $(get_hour_price 1))
 lamp_3_col=$(price_to_color $(get_hour_price 2))
 
-echo "L1: $lamp_1_col"
-echo "L2: $lamp_2_col"
-echo "L3: $lamp_3_col"
+#echo "L1: $lamp_1_col"
+#echo "L2: $lamp_2_col"
+#echo "L3: $lamp_3_col"
 
-./hass_activate_scene.sh "lampa_1_$lamp_1_col"
-./hass_activate_scene.sh "lampa_2_$lamp_2_col"
+mydir=$(dirname $0)
+
+$mydir/hass_activate_scene.sh "lampa_1_$lamp_1_col"
+$mydir/hass_activate_scene.sh "lampa_2_$lamp_2_col"
 ./hass_activate_scene.sh "lampa_3_$lamp_3_col"
