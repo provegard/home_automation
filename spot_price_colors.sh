@@ -50,16 +50,41 @@ price_to_color() {
     echo $color
 }
 
-lamp_1_col=$(price_to_color $(get_hour_price 0))
-lamp_2_col=$(price_to_color $(get_hour_price 1))
-lamp_3_col=$(price_to_color $(get_hour_price 2))
-
-#echo "L1: $lamp_1_col"
-#echo "L2: $lamp_2_col"
-#echo "L3: $lamp_3_col"
-
 mydir=$(dirname $0)
 
-$mydir/hass_activate_scene.sh "lampa_1_$lamp_1_col"
-$mydir/hass_activate_scene.sh "lampa_2_$lamp_2_col"
-./hass_activate_scene.sh "lampa_3_$lamp_3_col"
+lights="
+ikea_of_sweden_tradfri_bulb_e27_cws_globe_806lm_light
+ikea_of_sweden_tradfri_bulb_e27_cws_globe_806lm_light_2
+ikea_of_sweden_tradfri_bulb_e27_cws_globe_806lm_light_3
+"
+
+hour=$(date +%H)
+off_hour=23
+on_hour=6
+if [ "$hour" -ge "$off_hour" ] || [ "$hour" -lt "$on_hour" ]; then
+    echo "Lights off at hour $hour"
+    for light in $lights; do
+        $mydir/hass_light_off.sh $light
+    done
+    exit
+fi
+
+colors=(
+"$(price_to_color $(get_hour_price 0))"
+"$(price_to_color $(get_hour_price 1))"
+"$(price_to_color $(get_hour_price 2))"
+)
+col_length=${#colors[@]}
+#echo "L1: $lamp_1_col; L2: $lamp_2_col; L3: $lamp_3_col"
+echo "Colors: ${colors[@]}"
+
+for (( i=0; i<$col_length; i++ )); do
+    let n=i+1
+    scene="lampa_${n}_${colors[$i]}"
+    $mydir/hass_activate_scene.sh "$scene"
+done
+
+#$mydir/hass_activate_scene.sh "lampa_1_$lamp_1_col"
+#$mydir/hass_activate_scene.sh "lampa_2_$lamp_2_col"
+#$mydir/hass_activate_scene.sh "lampa_3_$lamp_3_col"
+
